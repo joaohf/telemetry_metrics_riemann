@@ -33,7 +33,7 @@ defmodule TelemetryMetricsRiemann.MixProject do
 
   defp preferred_cli_env do
     [
-      docs: :docs,
+      docs: :dev,
       dialyzer: :test,
       coveralls: :test,
       "coveralls.detail": :test,
@@ -48,7 +48,7 @@ defmodule TelemetryMetricsRiemann.MixProject do
       {:telemetry_metrics, "~> 0.2"},
       {:dialyxir, "~> 0.5", only: :test, runtime: false},
       {:mox, "~> 0.5.0", only: :test, runtime: false},
-      {:ex_doc, "~> 0.20.2", only: :docs},
+      {:ex_doc, "~> 0.20.2", only: :dev},
       {:excoveralls, "~> 0.11", only: :test}
     ]
   end
