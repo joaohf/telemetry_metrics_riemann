@@ -39,7 +39,7 @@ children = [
 Supervisor.start_link(children, ...)
 ```
 
-This reporter formats a telemetry metric to [riemann event](http://riemann.io/concepts.html) and sends using the `client`. A `client` means any supported riemann client. Currently the following riemann clients is supported:
+This reporter formats every metric from telemetry to [riemann event](http://riemann.io/concepts.html) and sends using the `client`. A `client` means any supported riemann client. Currently the following riemann clients is supported:
 
  * [riemannx](https://github.com/hazardfn/riemannx)
 

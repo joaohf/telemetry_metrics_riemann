@@ -62,10 +62,10 @@ workflows:
           elixir: "1.8.1"
           otp: "20"
       - telemetry_metrics_riemann/build_and_test:
-          name: "1.5-otp-20"
-          elixir: "1.5.3"
-          otp: "20"
+          name: "1.6-otp-21"
+          elixir: "1.6.6"
+          otp: "21"
       - telemetry_metrics_riemann/build_and_test:
-          name: "1.5-otp-18"
-          elixir: "1.5.3"
-          otp: "18"
+          name: "1.6-otp-20"
+          elixir: "1.6.6"
+          otp: "20"
