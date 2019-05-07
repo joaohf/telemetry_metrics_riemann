@@ -18,4 +18,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial version
 
 [Unreleased]: https://github.com/joaohf/telemetry_metrics_riemann/v0.1.0...HEAD
-[0.1.0]: https://github.com/joaohf/telemetry_metrics_riemann/v0.1.0
+[0.1.0]: https://github.com/joaohf/telemetry_metrics_riemann/tag/v0.1.0
