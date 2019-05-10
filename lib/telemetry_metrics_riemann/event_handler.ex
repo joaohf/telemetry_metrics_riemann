@@ -107,12 +107,10 @@ defmodule TelemetryMetricsRiemann.EventHandler do
           measurements[key]
       end
 
-    cond do
-      is_number(value) ->
-        {:ok, value}
-
-      true ->
-        :error
+    if is_number(value) do
+      {:ok, value}
+    else
+      :error
     end
   end
 

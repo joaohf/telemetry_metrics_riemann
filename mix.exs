@@ -49,7 +49,8 @@ defmodule TelemetryMetricsRiemann.MixProject do
       {:dialyxir, "~> 0.5", only: :test, runtime: false},
       {:mox, "~> 0.5.0", only: :test, runtime: false},
       {:ex_doc, "~> 0.20.2", only: :dev},
-      {:excoveralls, "~> 0.11", only: :test}
+      {:excoveralls, "~> 0.11", only: :test},
+      {:credo, "~> 1.0.0", only: [:dev, :test], runtime: false}
     ]
   end
 

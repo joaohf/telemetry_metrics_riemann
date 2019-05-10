@@ -64,6 +64,21 @@ Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_do
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/telemetry_metrics_riemann](https://hexdocs.pm/telemetry_metrics_riemann).
 
+## Riemannx
+
+Telemetry.Metrics.Riemann has a relaxed dependency from riemannx client. You need to add riemannx as dependency and configure it. The main reason is do not impose any riemann client; so you are free to use any client, providing the `TelemetryMetricsRiemann.Client`.
+
+Add [riemannx](https://hex.pm/packages/riemannx) to your list of dependencies in `mix.exs`:
+
+```elixir
+def deps do
+  [
+    {:riemannx, "~> 4.0"}
+  ]
+end
+```
+
+Follow the procedures to add a valid [riemannx configuration](https://hexdocs.pm/riemannx/readme.html#3-examples) to your application.
 
 ## Copyright and License
 
@@ -72,3 +87,7 @@ TelemetryMetricsStatsd is copyright (c) 2019 João Henrique Ferreira de Freitas.
 TelemetryMetricsStatsd source code is released under MIT license.
 
 See [LICENSE](LICENSE) for more information.
+
+## Credits
+
+The TelemetryMetricsRiemann was based on [TelemetryMetricsStatsd](https://github.com/arkgil/telemetry_metrics_statsd)

@@ -1,4 +1,6 @@
 defmodule TelemetryMetricsRiemann.Client do
+  @moduledoc false
+
   @callback format_events(any()) :: any()
   @callback publish_events(any()) :: :ok | {:ok, any()}
 
@@ -32,7 +34,7 @@ defmodule TelemetryMetricsRiemann.Client do
       attributes: attrs |> filter_fields |> format_attrs
     ]
 
-    List.flatten([event0, event1]) |> client.format_events
+    [event0, event1] |> List.flatten() |> client.format_events
   end
 
   defp get_common_riemann_fields(attrs, host) do

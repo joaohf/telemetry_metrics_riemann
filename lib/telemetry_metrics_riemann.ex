@@ -26,23 +26,51 @@ defmodule TelemetryMetricsRiemann do
 
   ## Translation between Telemetry.Metrics and riemann
 
-  TBD
+  In this section we walk through how the Telemetry.Metrics metric definitions are mapped to riemannx metrics
+  and their types at runtime
+
+  Telemetry.Metrics names are translated as follows:
+
+   * if the metric name was provided as a string, e.g. "http.request.count",
+     it is sent to riemann server as-is
+   * if the metric name was provided as a list of atoms, e.g. [:http, :request, :count],
+     it is first converted to a string by joiging the segments with dots.
+     In this example, the StatsD metric name would be "http.request.count" as well
+
+  If the metric has tags, it is send to to riemann as tags.
+
+  If the metric has tag value, it is converted to riemann attributes fields.
+
+  Also, the following attributes, if present will be used to fill the riemann default fields protocol and consequently removed from attributes:
+
+   * `host`
+   * `state`
+   * `ttl`
+   * `time`
+   * `time_micros`
+
+  All metrics values from Telemetry.Metrics type is converted to riemann `metric` field. There is no special
+  conversion rules. The riemann server, based on the configurations done, has an important role to convert/calculate each
+  metric send by TelemetryMetricsRiemann. This reporter acts only as bridge to the [riemann protocol](http://riemann.io/concepts.html).
 
   ### Counter
 
-  TBD
+  Telemetry.Metrics counter is simply represented as a riemann `metric`.
+  Each event the metric is based on increments the counter by 1.
 
   ### Last value
 
-  TBD
+  Last value metric is represented as a riemann `metric` value,
+  whose values are always set to the value of the measurement from the most recent event.
 
   ### Sum
 
-  TBD
+  Sum metric is also represented as a riemann `metric` value - the difference is that it always changes relatively and is never set to an absolute value.
 
   ### Distribution
 
-  TBD
+  There is no distribution metric type in riemann equivalent to Telemetry.Metrics distribution.
+  However, a distribution metric is also represented as a riemann `metric` value.
 
   ## Prefixing metric names
 
