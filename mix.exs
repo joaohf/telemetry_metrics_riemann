@@ -1,7 +1,7 @@
 defmodule TelemetryMetricsRiemann.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.2.0"
 
   def project do
     [
@@ -50,7 +50,10 @@ defmodule TelemetryMetricsRiemann.MixProject do
       {:mox, "~> 0.5.0", only: :test, runtime: false},
       {:ex_doc, "~> 0.20.2", only: :dev},
       {:excoveralls, "~> 0.11", only: :test},
-      {:credo, "~> 1.0.0", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.1", only: [:dev, :test], runtime: false},
+      {:riemannx, "~> 4.0", optional: true, runtime: false},
+      {:katja,
+       git: "https://github.com/joaohf/katja", branch: "master", optional: true, runtime: false}
     ]
   end
 

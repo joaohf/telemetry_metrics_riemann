@@ -2,7 +2,7 @@ defmodule TelemetryMetricsRiemann.Client do
   @moduledoc false
 
   @callback format_events(any()) :: any()
-  @callback publish_events(any()) :: :ok | {:ok, any()}
+  @callback publish_events([any()]) :: :ok | {:ok, any()}
 
   @riemann_filter_fields [:ttl, :state, :time, :time_micros, :host]
 

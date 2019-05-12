@@ -26,7 +26,7 @@ or put it under a supervisor:
 import Telemetry.Metrics
 
 children = [
-  {TelemetryMetricsStatsd, [
+  {TelemetryMetricsRiemann, [
     metrics: [
       counter("http.request.count"),
       sum("http.request.payload_size"),
@@ -39,9 +39,10 @@ children = [
 Supervisor.start_link(children, ...)
 ```
 
-This reporter formats every metric from telemetry to [riemann event](http://riemann.io/concepts.html) and sends using the `client`. A `client` means any supported riemann client. Currently the following riemann clients is supported:
+This reporter formats every metric from telemetry to [riemann event](http://riemann.io/concepts.html) and sends using the `client`. A `client` means any supported riemann client. Currently the following riemann clients are supported:
 
  * [riemannx](https://github.com/hazardfn/riemannx)
+ * [katja](https://github.com/joaohf/katja)
 
 You can also configure the prefix for all the published metrics using the `:prefix` option.
 
@@ -64,9 +65,13 @@ Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_do
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/telemetry_metrics_riemann](https://hexdocs.pm/telemetry_metrics_riemann).
 
-## Riemannx
+## Riemann clients
 
-Telemetry.Metrics.Riemann has a relaxed dependency from riemannx client. You need to add riemannx as dependency and configure it. The main reason is do not impose any riemann client; so you are free to use any client, providing the `TelemetryMetricsRiemann.Client`.
+Telemetry.Metrics.Riemann has a relaxed dependency from a riemann client. The main reason is to do not impose any riemann client; so you are free to use any client.
+
+You need to add one of the supported riemann client as dependency and configure it properly. Or provide an `TelemetryMetricsRiemann.Client` behaviour implementation.
+
+## Riemannx
 
 Add [riemannx](https://hex.pm/packages/riemannx) to your list of dependencies in `mix.exs`:
 
@@ -80,11 +85,24 @@ end
 
 Follow the procedures to add a valid [riemannx configuration](https://hexdocs.pm/riemannx/readme.html#3-examples) to your application.
 
+## Katja
+
+Add [katja](https://hex.pm/packages/katja) to your list of dependencies in `rebar.config`:
+
+```erlang
+{deps, [
+        {katja, "0.10.0"}
+]}.
+```
+
+Follow the procedures to add a valid [katja configuration](https://github.com/joaohf/katja#configuration) to your application.
+
+
 ## Copyright and License
 
-TelemetryMetricsStatsd is copyright (c) 2019 João Henrique Ferreira de Freitas.
+TelemetryMetricsRiemann is copyright (c) 2020 João Henrique Ferreira de Freitas.
 
-TelemetryMetricsStatsd source code is released under MIT license.
+TelemetryMetricsRiemann source code is released under MIT license.
 
 See [LICENSE](LICENSE) for more information.
 

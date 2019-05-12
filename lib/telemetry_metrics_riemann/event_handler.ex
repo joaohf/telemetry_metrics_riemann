@@ -54,35 +54,27 @@ defmodule TelemetryMetricsRiemann.EventHandler do
         prefix: prefix,
         host: host
       }) do
-    packets =
-      for metric <- metrics do
-        case fetch_measurement(metric, measurements) do
-          {:ok, value} ->
-            opts = %{
-              attributes: metric.tag_values.(metadata),
-              tags: metric.tags,
-              metric: metric,
-              value: value,
-              client: client,
-              prefix: prefix,
-              host: host
-            }
+    for metric <- metrics do
+      case fetch_measurement(metric, measurements) do
+        {:ok, value} ->
+          opts = %{
+            attributes: metric.tag_values.(metadata),
+            tags: metric.tags,
+            metric: metric,
+            value: value,
+            client: client,
+            prefix: prefix,
+            host: host
+          }
 
-            TelemetryMetricsRiemann.Client.format(opts)
+          TelemetryMetricsRiemann.Client.format(opts)
 
-          :error ->
-            :nopublish
-        end
+        :error ->
+          :nopublish
       end
-      |> Enum.filter(fn l -> check_metric(reporter, l) end)
-
-    case packets do
-      [] ->
-        :ok
-
-      packets ->
-        publish_metrics(reporter, client, packets)
     end
+    |> Enum.filter(fn l -> l != :nopublish end)
+    |> publish_metrics(reporter, client)
   end
 
   @spec handler_id(:telemetry.event_name(), reporter :: pid) :: :telemetry.handler_id()
@@ -93,8 +85,8 @@ defmodule TelemetryMetricsRiemann.EventHandler do
   @spec fetch_measurement(Metrics.t(), :telemetry.event_measurements()) ::
           {:ok, number()} | :error
   defp fetch_measurement(%Metrics.Counter{}, _measurements) do
-    # For counter, we can ignore the measurements and just use 0.
-    {:ok, 0}
+    # For counter, we can ignore the measurements and just use 1.
+    {:ok, 1}
   end
 
   defp fetch_measurement(metric, measurements) do
@@ -114,24 +106,19 @@ defmodule TelemetryMetricsRiemann.EventHandler do
     end
   end
 
-  @spec publish_metrics(pid(), module(), [any()]) :: :ok
-  defp publish_metrics(reporter, client, packets) do
+  @spec publish_metrics([any()], pid(), module()) :: :ok
+  defp publish_metrics([], _reporter, _client) do
+    :ok
+  end
+
+  defp publish_metrics(packets, reporter, client) do
     case client.publish_events(packets) do
       :ok ->
         :ok
 
       {:error, reason} ->
-        TelemetryMetricsRiemann.client_error(reporter, reason)
+        TelemetryMetricsRiemann.client_error(reporter, {"Failed to publish metric", reason})
         :ok
     end
-  end
-
-  defp check_metric(reporter, :nopublish) do
-    TelemetryMetricsRiemann.client_error(reporter, "Failed to process metric")
-    false
-  end
-
-  defp check_metric(_, _) do
-    true
   end
 end

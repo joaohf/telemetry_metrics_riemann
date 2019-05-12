@@ -3,15 +3,17 @@ defmodule TelemetryMetricsRiemannTest do
 
   use ExUnit.Case
 
-  import ExUnit.CaptureLog
+  alias TelemetryMetricsRiemann.Client.Katja
+  alias TelemetryMetricsRiemann.Client.Riemannx
 
   setup :set_mox_global
   setup :verify_on_exit!
 
-  test "counter metric is reported as riemann metric with 0 as a value" do
-    counter = given_counter("http.requests", event_name: "http.request")
+  test "counter metric is reported as riemann metric with 1 as a value" do
+    counter =
+      given_counter("http.requests", event_name: "http.request", description: "Http Request")
 
-    start_reporter(metrics: [counter], client: RiemannClientMock)
+    start_reporter(metrics: [counter], client: RiemannClientMock, host: "localhost")
 
     RiemannClientMock
     |> expect(:format_events, 1, fn event -> event end)
@@ -21,8 +23,8 @@ defmodule TelemetryMetricsRiemannTest do
         time_micros: _tm,
         time: _t,
         service: "http.requests",
-        description: nil,
-        metric: 0,
+        description: "Http Request",
+        metric: 1,
         tags: [],
         attributes: []
       ] = event
@@ -108,7 +110,7 @@ defmodule TelemetryMetricsRiemannTest do
         time: _t,
         service: "http.requests",
         description: nil,
-        metric: 0,
+        metric: 1,
         tags: [:method, :status],
         attributes: [method: "GET", status: 200]
       ] = event
@@ -122,7 +124,7 @@ defmodule TelemetryMetricsRiemannTest do
         time: _t,
         service: "http.requests",
         description: nil,
-        metric: 0,
+        metric: 1,
         tags: [:method, :status],
         attributes: [method: "POST", status: 201]
       ] = event
@@ -136,7 +138,7 @@ defmodule TelemetryMetricsRiemannTest do
         time: _t,
         service: "http.requests",
         description: nil,
-        metric: 0,
+        metric: 1,
         tags: [:method, :status],
         attributes: [method: "GET", status: 404]
       ] = event
@@ -327,21 +329,22 @@ defmodule TelemetryMetricsRiemannTest do
       given_counter("http.request.count"),
       given_distribution("http.request.latency", buckets: [0, 100, 200]),
       given_last_value("http.request.current_memory"),
-      given_sum("http.request.payload_size")
+      given_sum("http.request.payload_size"),
+      given_summary("http.request.duration")
     ]
 
     start_reporter(metrics: metrics, client: RiemannClientMock, prefix: "myapp")
 
     RiemannClientMock
-    |> expect(:format_events, 4, fn event -> event end)
-    |> expect(:publish_events, 1, fn [e1, e2, e3, e4] ->
+    |> expect(:format_events, 5, fn event -> event end)
+    |> expect(:publish_events, 1, fn [e1, e2, e3, e4, e5] ->
       [
         host: _h,
         time_micros: _tm,
         time: _t,
         service: "myapp.http.request.count",
         description: nil,
-        metric: 0,
+        metric: 1,
         tags: [],
         attributes: []
       ] = e1
@@ -379,41 +382,101 @@ defmodule TelemetryMetricsRiemannTest do
         attributes: []
       ] = e4
 
+      [
+        host: _h,
+        time_micros: _tm,
+        time: _t,
+        service: "myapp.http.request.duration",
+        description: nil,
+        metric: 120,
+        tags: [],
+        attributes: []
+      ] = e5
+
       :ok
     end)
 
-    :telemetry.execute([:http, :request], %{latency: 200, current_memory: 200, payload_size: 200})
+    :telemetry.execute([:http, :request], %{
+      latency: 200,
+      current_memory: 200,
+      payload_size: 200,
+      duration: 120
+    })
   end
 
-  test "invalid value is reported" do
-    counter = given_last_value("http.requests", event_name: "http.request")
+  test "format events using riemanxx riemann client" do
+    event = [
+      host: "porco",
+      time_micros: 1_577_874_299_399_747,
+      time: 1_577_874_299,
+      service: "http.requests",
+      description: "Http Request",
+      metric: 0,
+      tags: [],
+      attributes: [test1: 1234, test2: :test, test3: "test"]
+    ]
 
-    start_reporter(metrics: [counter], client: RiemannClientMock)
+    assert event == Riemannx.format_events(event)
+  end
 
-    RiemannClientMock
-    |> expect(:format_events, 0, fn event -> event end)
-    |> expect(:publish_events, 0, fn _events -> :ok end)
+  test "format events using katja riemann client" do
+    event = [
+      host: "porco",
+      time_micros: 1_577_874_299_399_747,
+      time: 1_577_874_299,
+      service: "http.requests",
+      description: "Http Request",
+      metric: 0,
+      tags: [],
+      attributes: [test1: 1234, test2: :test, test3: "test"]
+    ]
 
-    assert capture_log(fn ->
-             :telemetry.execute([:http, :request], %{latency: :number})
-             Process.sleep(100)
-           end) =~ ~r/Failed to process metric/
+    event_formated = [
+      host: "porco",
+      time_micros: 1_577_874_299_399_747,
+      time: 1_577_874_299,
+      service: "http.requests",
+      description: "Http Request",
+      metric: 0,
+      tags: [],
+      attributes: [{"test1", "1234"}, {"test2", "test"}, {"test3", "test"}]
+    ]
+
+    assert event_formated == Katja.format_events(event)
   end
 
   describe "riemann client error handling" do
-    test "notifying an error logs an error" do
-      reporter = start_reporter(metrics: [], client: RiemannClientMock, prefix: "myapp")
+    test "when passing an invalid host" do
+      Process.flag(:trap_exit, true)
 
-      assert capture_log(fn ->
-               TelemetryMetricsRiemann.client_error(reporter, "Failed to publish metric")
-               Process.sleep(100)
-             end) =~ ~r/Failed to publish metric/
+      TelemetryMetricsRiemann.start_link(
+        metrics: [],
+        client: RiemannClientMock,
+        prefix: "myapp",
+        host: 12_700
+      )
+
+      assert_receive {:EXIT, _pid, {%ArgumentError{message: "The 12700 is invalid"}, _}}
     end
 
-    test "notifying a UDP error for the same socket multiple times generates only one log" do
+    @tag :capture_log
+    test "notifying an error logs an error" do
+      Process.flag(:trap_exit, true)
+
+      reporter = start_reporter(metrics: [], client: RiemannClientMock, prefix: "myapp")
+
+      TelemetryMetricsRiemann.client_error(reporter, "Failed to publish metric")
+
+      assert_receive {:EXIT, ^reporter, {:client_error, "Failed to publish metric"}}
+    end
+
+    @tag :capture_log
+    test "notifying an error when publish fail" do
       counter = given_counter("http.requests", event_name: "http.request")
 
-      start_reporter(metrics: [counter], client: RiemannClientMock)
+      Process.flag(:trap_exit, true)
+
+      reporter = start_reporter(metrics: [counter], client: RiemannClientMock)
 
       RiemannClientMock
       |> expect(:format_events, 1, fn event -> event end)
@@ -421,10 +484,12 @@ defmodule TelemetryMetricsRiemannTest do
         {:error, "Failed to publish metric using riemann client mock"}
       end)
 
-      assert capture_log(fn ->
-               :telemetry.execute([:http, :request], %{latency: 211})
-               Process.sleep(100)
-             end) =~ ~r/Failed to publish metric using riemann client mock/
+      :telemetry.execute([:http, :request], %{latency: 211})
+
+      assert_receive {:EXIT, ^reporter,
+                      {:client_error,
+                       {"Failed to publish metric",
+                        "Failed to publish metric using riemann client mock"}}}
     end
   end
 
@@ -434,6 +499,10 @@ defmodule TelemetryMetricsRiemannTest do
 
   defp given_sum(event_name, opts \\ []) do
     Telemetry.Metrics.sum(event_name, opts)
+  end
+
+  defp given_summary(event_name, opts \\ []) do
+    Telemetry.Metrics.summary(event_name, opts)
   end
 
   defp given_last_value(event_name, opts \\ []) do
