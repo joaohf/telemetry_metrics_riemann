@@ -15,6 +15,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [0.2.0] - 2020-01-03
+### Added
+- Add credo
+- Run tests and credo analysis while CI
+- Katja riemann client
+### Changed
+
+### Removed
+
+### Fixed
+- Sending metrics using riemann client
+
 ## [0.1.0] - 2019-05-07
 ### Added
 - Initial version
