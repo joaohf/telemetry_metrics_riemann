@@ -51,9 +51,7 @@ defmodule TelemetryMetricsRiemann.MixProject do
       {:ex_doc, "~> 0.20.2", only: :dev},
       {:excoveralls, "~> 0.11", only: :test},
       {:credo, "~> 1.1", only: [:dev, :test], runtime: false},
-      {:riemannx, "~> 4.0", optional: true, runtime: false},
-      {:katja,
-       git: "https://github.com/joaohf/katja", branch: "master", optional: true, runtime: false}
+      {:riemannx, "~> 4.0", optional: true, runtime: false}
     ]
   end
 
